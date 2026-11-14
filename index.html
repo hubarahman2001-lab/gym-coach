@@ -82,6 +82,16 @@ textarea{width:100%;border-radius:12px;border:1px solid #334155;background:var(-
 #cam .ctop span{font-weight:700;font-size:15px;background:rgba(2,6,23,.6);padding:4px 12px;border-radius:999px}
 #cam .ctop b{display:block;font-size:120px;line-height:1.05;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
 #ch{min-height:28px;margin:0 auto;font-size:18px;font-weight:700;display:inline-block;padding:4px 12px;border-radius:12px;background:rgba(2,6,23,.6)}#ch:empty{background:none}#ch.warn{color:#fde047}
+#cg{font-size:30px;font-weight:700;color:#cbd5e1;text-shadow:0 2px 10px #000}#cam .ctop b{display:inline}
+.cframe{position:absolute;inset:0;border:8px solid transparent;pointer-events:none;transition:border-color .2s}.cframe.ok{border-color:rgba(34,197,94,.85)}.cframe.bad{border-color:rgba(251,113,133,.9)}
+.cbar{position:absolute;right:16px;top:32%;height:38%;width:26px;border-radius:14px;background:rgba(2,6,23,.6);border:2px solid rgba(255,255,255,.5);overflow:hidden}
+.cbar i{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--sky);transition:height .08s}.cbar i.ok{background:var(--acc)}
+.cbar em{position:absolute;right:30px;top:-2px;white-space:nowrap;font-style:normal;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 6px #000}.cbar{overflow:visible}.cbar i{border-radius:12px}
+.cmid{position:absolute;left:16px;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;pointer-events:none;text-shadow:0 2px 14px #000}
+.cmid .cbig{font-size:110px;font-weight:800;line-height:1;color:#fff;font-variant-numeric:tabular-nums}.cmid .cmsg{font-size:24px;font-weight:800;color:#fff;background:rgba(2,6,23,.55);padding:4px 14px;border-radius:12px}
+.cset{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 4px}.cset label{font-size:12px}.cset input,.cset select{width:100%;margin-top:4px;padding:10px 6px;border-radius:12px;border:1px solid #334155;background:var(--line);color:var(--ink);font:inherit;font-size:16px;text-align:center}
+.cvo{display:flex!important;align-items:center;gap:10px;font-size:14px!important;color:var(--ink)!important;margin:10px 0}.cvo input{width:22px;height:22px;accent-color:#16a34a}
+.csum{margin:8px 0;padding-left:20px;color:#cbd5e1;font-size:16px;line-height:1.7}
 #cam .cbot{position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}#cam .cbot button{flex:1;min-height:56px;margin:0}
 </style>
 </head>
@@ -94,8 +104,8 @@ textarea{width:100%;border-radius:12px;border:1px solid #334155;background:var(-
 <div id="rb" role="status"><span>Rest</span><b id="rt">1:00</b><button onclick="rest(rl+15)">+15s</button><button onclick="rest(0)">Skip</button></div>
 <div id="pl" role="dialog" aria-label="Stretch routine"></div>
 <div id="cam" role="dialog" aria-label="Camera rep counter"></div>
-<script src="coach.js?v=4"></script>
-<script src="camera.js?v=4"></script>
+<script src="coach.js?v=5"></script>
+<script src="camera.js?v=5"></script>
 <script>
 var PLAN={
 A:{name:"A · Legs & core",focus:"Thighs and glutes. Train after work, about 45 minutes.",ex:[

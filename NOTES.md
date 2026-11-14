@@ -41,3 +41,14 @@ only runs while shoulder-hip-ankle is straight. Camera-tab sets save to today's 
 
 How to test: on the iPhone open the Camera tab, tap Count squats, Start camera, allow the camera, prop the phone up
 side-on about 2 m away, wait for the 5-second countdown, then do a few squats and one half squat.
+
+## Camera upgrade: hands-free sets, voice, depth bar, position check
+
+Before starting you pick a goal (reps or seconds), number of sets and rest time (remembered per exercise on the Camera
+tab; taken from the plan on workout cards). The screen has a green frame when your whole body is in view and red when
+not, with a plain message like "Can't see your feet". After 1 second in view it counts down (5 s, then 3 s for later
+sets), counts reps out loud, finishes and saves the set at the goal, runs the rest timer, and starts the next set.
+A bar on the right fills as you go down and turns green when the rep is deep enough. Voice can be turned off (beeps instead).
+
+How to test: Camera tab, Count squats, goal 5, sets 2, rest 30 sec, Start camera. Stand so the frame turns green, then do
+5 squats without touching the phone. It should say "Set done", rest 30 s, then run set 2 and show a summary.
