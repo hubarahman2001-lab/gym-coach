@@ -71,6 +71,18 @@ textarea{width:100%;border-radius:12px;border:1px solid #334155;background:var(-
 .sug .ghost{min-height:44px;padding:10px 18px;color:var(--sky);font-weight:700}
 .stp{display:flex;align-items:center;gap:6px;flex:0 0 100%;font-size:12px}.stp input{width:64px;padding:6px;margin:0;text-align:center;font-size:14px}
 .set{position:relative}.prb{position:absolute;top:-7px;right:-6px;margin:0!important}.prb,.prt{background:#facc15;color:#1c1917;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:800;margin-left:4px;vertical-align:middle}
+.cambtn{width:100%;margin-top:12px;min-height:48px;color:var(--sky);font-weight:700}
+#cam{position:fixed;inset:0;z-index:10;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
+#cam video,#cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#cam .cbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:420px;width:100%}
+#cam .cbox h2{margin:0 0 8px;font-size:24px}#cam .cbox p{color:#cbd5e1;font-size:14px;line-height:1.5}
+.cnote{background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.4);border-radius:12px;padding:10px}.cpriv{color:var(--mut)!important;font-size:12px!important}
+.cerr{color:var(--warn)!important;font-weight:600}.cload{color:var(--sky)!important;font-weight:600}
+#cam .ctop{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;right:12px;text-align:center;text-shadow:0 2px 10px #000}
+#cam .ctop span{font-weight:700;font-size:15px;background:rgba(2,6,23,.6);padding:4px 12px;border-radius:999px}
+#cam .ctop b{display:block;font-size:120px;line-height:1.05;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+#ch{min-height:28px;margin:0 auto;font-size:18px;font-weight:700;display:inline-block;padding:4px 12px;border-radius:12px;background:rgba(2,6,23,.6)}#ch:empty{background:none}#ch.warn{color:#fde047}
+#cam .cbot{position:absolute;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:10px}#cam .cbot button{flex:1;min-height:56px;margin:0}
 </style>
 </head>
 <body>
@@ -81,7 +93,9 @@ textarea{width:100%;border-radius:12px;border:1px solid #334155;background:var(-
 </main>
 <div id="rb" role="status"><span>Rest</span><b id="rt">1:00</b><button onclick="rest(rl+15)">+15s</button><button onclick="rest(0)">Skip</button></div>
 <div id="pl" role="dialog" aria-label="Stretch routine"></div>
+<div id="cam" role="dialog" aria-label="Camera rep counter"></div>
 <script src="coach.js"></script>
+<script src="camera.js"></script>
 <script>
 var PLAN={
 A:{name:"A · Legs & core",focus:"Thighs and glutes. Train after work, about 45 minutes.",ex:[
@@ -119,12 +133,12 @@ function load(){try{var r=localStorage.getItem("gymplan");if(r)S=JSON.parse(r)}c
 }
 function save(){try{localStorage.setItem("gymplan",JSON.stringify(S))}catch(e){}}
 function mmss(s){return Math.floor(s/60)+":"+("0"+s%60).slice(-2)}
-function tabs(){var h="";for(var k in PLAN)h+=tb(k,PLAN[k].name);h+=tb("T","Stretch")+tb("L","Log")+tb("K","Week")+tb("P","Progress");document.getElementById("tabs").innerHTML=h}
+function tabs(){var h="";for(var k in PLAN)h+=tb(k,PLAN[k].name);h+=tb("T","Stretch")+tb("X","Camera")+tb("L","Log")+tb("K","Week")+tb("P","Progress");document.getElementById("tabs").innerHTML=h}
 function tb(k,n){return'<button role="tab" aria-selected="'+(tab===k)+'" onclick="go(\''+k+'\')">'+n+'</button>'}
 function go(t){tab=t;render()}
 function tot(k){return R[k].m.reduce(function(a,x){return a+x[1]},0)}
 function setsOf(s){return s.indexOf("min")>0?1:parseInt(s,10)}
-function render(){tabs();var v=document.getElementById("view");if(tab==="P")return prog(v);if(tab==="T")return str(v);if(tab==="L")return logv(v);if(tab==="K")return weekv(v);
+function render(){tabs();var v=document.getElementById("view");if(tab==="P")return prog(v);if(tab==="T")return str(v);if(tab==="X")return camv(v);if(tab==="L")return logv(v);if(tab==="K")return weekv(v);
 var p=PLAN[tab],h='<p class="focus">'+p.focus+'</p><div class="two"><button class="ghost" onclick="play(\'w\')">Warm up · '+mmss(tot("w"))+'</button><button class="ghost" onclick="play(\'c\')">Cool down · '+mmss(tot("c"))+'</button></div>',t=0,dn=0;
 if(tab==="W")h='<p class="focus">'+p.focus+'</p><button class="big" style="margin:0 0 14px" onclick="play(\'g\')">Start guided incline walk · 30:00</button>';
 p.ex.forEach(function(e,i){var n=setsOf(e[1]),k=tab+i,d=S.done[k]||[],w=S.w[k]||"";t+=n;var c=0;
@@ -132,7 +146,7 @@ h+='<details class="ex" data-k="'+k+'" '+(OP[k]?'open':'')+' ontoggle="OP[this.d
 for(var j=0;j<n;j++){var on=d[j],q=gs(k,j,e);if(on){dn++;c++}
 h+='<div class="sr"><button class="set'+(on?' on':'')+'" aria-pressed="'+!!on+'" onclick="tg(\''+k+'\','+j+')">'+(on?CK:'')+'Set '+(j+1)+(j===pi?'<span class="prb">PR</span>':'')+'</button>'+(tab==="W"?'':'<label>Reps<input value="'+q.r+'" aria-label="Reps for set '+(j+1)+'" onchange="sv(\''+k+'\','+j+',\'r\',this.value)"></label><label>kg<input type="number" inputmode="decimal" value="'+q.k+'" aria-label="Weight for set '+(j+1)+'" onchange="sv(\''+k+'\','+j+',\'k\',this.value)"></label>')+'</div>'}
 h+='</div>';
-h+='<div class="tipbox">'+BL+'<span><b>Tip:</b> '+e[3]+'</span></div><a class="demo" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(e[0]+' exercise tutorial for beginners')+'">▶ Watch demo video</a><div class="mini"><i style="width:'+Math.round(c/n*100)+'%"></i></div></details>'});
+h+=camBtn(e,k)+'<div class="tipbox">'+BL+'<span><b>Tip:</b> '+e[3]+'</span></div><a class="demo" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(e[0]+' exercise tutorial for beginners')+'">▶ Watch demo video</a><div class="mini"><i style="width:'+Math.round(c/n*100)+'%"></i></div></details>'});
 v.innerHTML='<div class="pc"><div class="ph"><span>'+p.name+'<span class="badge">'+Math.round(dn/t*100)+'% done</span></span><span>'+dn+' / '+t+' sets</span></div><div class="bar"><i style="width:'+Math.round(dn/t*100)+'%"></i></div></div>'+h+'<p class="tip" style="text-align:center">Ticked sets and weights save to today’s calendar automatically.</p><button class="ghost" style="margin-top:10px" onclick="rs()">Clear ticks for next session</button>'}
 function tg(k,j){ac();var d=S.done[k]||[];d[j]=!d[j];S.done[k]=d;sync(k);render();if(d[j]&&tab!=="W")rest(60)}
 function wt(k,x){S.w[k]=x;sync(k)}

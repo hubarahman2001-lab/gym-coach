@@ -28,3 +28,16 @@ from earlier days, and on Log entries that were a record. Old backups still load
 
 How to test: on the Log tab, add a past day with e.g. "Leg press, 3 sets, 12 reps, 40 kg", go to workout A and check
 the Leg press box says "Try 42.5 kg". Then tick a set at 45 kg to see the PR mark.
+
+## Steps 2 and 3: camera rep counter
+
+Built in `camera.js`. A new **Camera** tab counts squats, lunges, push-ups, shoulder press and plank; the Plank and
+Shoulder press machine cards also get a "Count with camera" button that fills the result into the next unticked set.
+It uses Google's MediaPipe pose model (`@mediapipe/tasks-vision@1.2.0`, lite model), which runs on the phone; the video
+is never recorded or uploaded. The model downloads the first time (about 20 MB), so the first start needs internet.
+Reps count when a joint angle goes past a target and comes back (squat/lunge knee under 100-105°, push-up elbow under
+95°, press elbow over 155°); a rep that turns back early beeps low and shows "Too shallow, not counted". Plank time
+only runs while shoulder-hip-ankle is straight. Camera-tab sets save to today's log as e.g. "Squats · 10, 12".
+
+How to test: on the iPhone open the Camera tab, tap Count squats, Start camera, allow the camera, prop the phone up
+side-on about 2 m away, wait for the 5-second countdown, then do a few squats and one half squat.

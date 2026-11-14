@@ -18,15 +18,15 @@ An upgrade of my existing gym app, "My Gym Plan". It already has day plans, set/
 - [x] Mark personal records when a logged set beats the previous best.
 
 ## Step 2: camera rep counter
-- [ ] A "Count with camera" button on supported exercises. The phone is propped up and the app counts.
-- [ ] Use an on-device pose model that runs in the browser (check the current MediaPipe pose docs). No video is recorded or uploaded.
-- [ ] Start with squats (count a rep when the knee angle goes down past a threshold and back up) and plank (time the hold while the body stays straight).
-- [ ] Show a big live count, a beep per rep, and a "too shallow, not counted" hint.
-- [ ] When the set ends, fill the reps into the normal log so Step 1 can use them.
-- [ ] Works with the front camera in portrait on an iPhone in Safari.
+- [x] A "Count with camera" button on supported exercises. The phone is propped up and the app counts.
+- [x] Use an on-device pose model that runs in the browser (check the current MediaPipe pose docs). No video is recorded or uploaded.
+- [x] Start with squats (count a rep when the knee angle goes down past a threshold and back up) and plank (time the hold while the body stays straight).
+- [x] Show a big live count, a beep per rep, and a "too shallow, not counted" hint.
+- [x] When the set ends, fill the reps into the normal log so Step 1 can use them.
+- [ ] Works with the front camera in portrait on an iPhone in Safari. (Built for it; still needs a try on the real iPhone.)
 
 ## Step 3: more exercises
-- [ ] Add push-ups, lunges and shoulder press to the counter, one at a time.
+- [x] Add push-ups, lunges and shoulder press to the counter, one at a time.
 
 ## Limits to keep honest
 - The camera is a counter and a motivator. It does not judge whether form is safe, and the app should say so once.
