@@ -6,20 +6,47 @@ var MP_MODEL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/
 
 // Each move watches one joint angle (degrees, 180 = straight).
 // rest: where a rep starts and ends. goal: how far a rep must go to count. go: past this you are clearly doing a rep.
+// down: true when the angle gets smaller during the rep. rel: thresholds measured from your own start position instead.
+// j: knee (hip-knee-ankle), elbow (shoulder-elbow-wrist), hip (shoulder-hip-knee), spread (knee gap vs hip width x100).
+var SIDE_ON = "Prop the phone side-on to you, about 1.5–2 m away, so your whole body is in view.";
+var FACE_ON = "Prop the phone in front of you, about 2 m away, with your upper body and both arms in view.";
 var MOVES = {
-  squat:  { n: "Squats", j: "knee", rest: 160, goal: 100, go: 140, down: true, side: "best",
+  squat:  { g: "body", n: "Squats", j: "knee", rest: 160, goal: 100, go: 140, down: true, side: "best",
             how: "Prop the phone at hip height. Stand side-on, about 2 m away, so your whole body is in view.", start: "Stand tall to start" },
-  lunge:  { n: "Lunges", j: "knee", rest: 160, goal: 105, go: 140, down: true, side: "min",
+  lunge:  { g: "body", n: "Lunges", j: "knee", rest: 160, goal: 105, go: 140, down: true, side: "min",
             how: "Stand side-on, about 2 m away, whole body in view. Each step down and back up is one rep.", start: "Stand tall to start" },
-  pushup: { n: "Push-ups", j: "elbow", rest: 155, goal: 95, go: 130, down: true, side: "best",
+  pushup: { g: "body", n: "Push-ups", j: "elbow", rest: 155, goal: 95, go: 130, down: true, side: "best",
             how: "Phone on the floor, side-on, about 1.5 m away, whole body in view.", start: "Arms straight to start" },
-  press:  { n: "Shoulder press", j: "elbow", rest: 105, goal: 155, go: 130, down: false, side: "avg",
-            how: "Face the phone with your upper body and both arms in view.", start: "Hands at shoulder height to start" },
-  plank:  { n: "Plank", plank: true,
-            how: "Phone on the floor, side-on, about 1.5 m away, whole body in view." }
+  plank:  { g: "body", n: "Plank", plank: true,
+            how: "Phone on the floor, side-on, about 1.5 m away, whole body in view." },
+  legpress: { g: "gym", n: "Leg press", j: "knee", rest: 145, goal: 100, go: 130, down: true, side: "best",
+            how: SIDE_ON, start: "Legs pushed out to start" },
+  legext: { g: "gym", n: "Leg extension", j: "knee", rest: 115, goal: 155, go: 135, down: false, side: "best",
+            how: SIDE_ON, start: "Knees bent to start" },
+  legcurl: { g: "gym", n: "Seated leg curl", j: "knee", rest: 145, goal: 100, go: 130, down: true, side: "best",
+            how: SIDE_ON, start: "Legs straight to start" },
+  abduct: { g: "gym", n: "Hip abduction", j: "spread", rel: { go: 20, goal: 40, back: 12 }, down: false, side: "avg",
+            how: "Prop the phone in front of you, about 2 m away, so your hips and knees are in view.", start: "Knees together to start" },
+  press:  { g: "gym", n: "Shoulder press", log: "Shoulder press machine", j: "elbow", rest: 105, goal: 155, go: 130, down: false, side: "avg",
+            how: FACE_ON, start: "Hands at shoulder height to start" },
+  pulldown: { g: "gym", n: "Lat pulldown", j: "elbow", rest: 145, goal: 95, go: 125, down: true, side: "avg",
+            how: FACE_ON, start: "Arms up straight to start" },
+  row:    { g: "gym", n: "Seated row", j: "elbow", rest: 145, goal: 100, go: 130, down: true, side: "best",
+            how: SIDE_ON, start: "Arms straight out to start" },
+  triceps: { g: "gym", n: "Triceps pushdown", j: "elbow", rest: 100, goal: 150, go: 125, down: false, side: "best",
+            how: SIDE_ON, start: "Elbows bent to start" },
+  curl:   { g: "gym", n: "Biceps curl", j: "elbow", rest: 140, goal: 70, go: 110, down: true, side: "best",
+            how: SIDE_ON, start: "Arms straight down to start" },
+  chest:  { g: "gym", n: "Chest press", log: "Chest press machine", j: "elbow", rest: 105, goal: 150, go: 130, down: false, side: "best",
+            how: SIDE_ON, start: "Hands at chest to start" },
+  abs:    { g: "gym", n: "Ab crunch / leg raises", log: "Ab crunch machine or leg raises", j: "hip", rel: { go: 15, goal: 30, back: 10 }, down: true, side: "best",
+            how: SIDE_ON, start: "Hold your start position" }
 };
-// Plan exercises that get a "Count with camera" button
-var CAM_FOR = { "Plank": "plank", "Shoulder press machine": "press" };
+// Every gym exercise in the plan gets a "Count with camera" button
+var CAM_FOR = { "Leg press": "legpress", "Leg extension": "legext", "Seated leg curl": "legcurl", "Hip abduction": "abduct",
+  "Plank": "plank", "Shoulder press machine": "press", "Lat pulldown": "pulldown", "Seated row": "row",
+  "Triceps pushdown": "triceps", "Biceps curl": "curl", "Chest press machine": "chest",
+  "Assisted pull-up or lat pulldown": "pulldown", "Ab crunch machine or leg raises": "abs" };
 
 // ---------- counting logic (no camera needed, easy to test) ----------
 function ang(a, b, c, ar) {
@@ -32,10 +59,16 @@ function ang(a, b, c, ar) {
 var SIDES = [[11, 13, 15, 23, 25, 27], [12, 14, 16, 24, 26, 28]];
 var PARTS = ["shoulders", "elbows", "hands", "hips", "knees", "feet"];
 function seen(L, i) { return L[i] && (L[i].visibility == null || L[i].visibility > 0.5); }
-function needs(m) { return m.plank ? [0, 3, 5] : m.j === "knee" ? [3, 4, 5] : [0, 1, 2]; }
+function needs(m) { return m.plank ? [0, 3, 5] : m.j === "knee" ? [3, 4, 5] : m.j === "hip" ? [0, 3, 4] : m.j === "spread" ? [3, 4] : [0, 1, 2]; }
 
 // The angle to watch in one camera frame, or null if the body is not clearly in view.
 function measure(m, L, ar) {
+  if (m.j === "spread") { // knees apart compared with hip width, both sides needed
+    if (![23, 24, 25, 26].every(function (i) { return seen(L, i); })) return null;
+    var dd = function (a, b) { var x = (a.x - b.x) * ar, y = a.y - b.y; return Math.sqrt(x * x + y * y); };
+    var hw = dd(L[23], L[24]); if (!hw) return null;
+    return { a: dd(L[25], L[26]) / hw * 100, p: [23, 25, 27] };
+  }
   var out = SIDES.map(function (s) {
     var p = needs(m).map(function (t) { return s[t]; });
     if (!p.every(function (i) { return seen(L, i); })) return null;
@@ -55,28 +88,35 @@ function whereMsg(m, L) {
     return m.side === "avg" ? !SIDES.every(function (s) { return seen(L, s[t]); }) : !SIDES.some(function (s) { return seen(L, s[t]); });
   }).map(function (t) { return PARTS[t]; });
   if (miss.length) return "Can't see your " + miss.join(" and ") + ". Step back or tilt the phone.";
-  return m.side === "avg" ? "Face the phone so both arms are in view." : "Turn side-on to the phone.";
+  return m.side === "avg" ? (m.j === "spread" ? "Face the phone so both knees are in view." : "Face the phone so both arms are in view.") : "Turn side-on to the phone.";
 }
 
 // Rep counter: wait (until seen in start position) -> rest -> move -> back to rest = one rep, if the goal was reached.
-function Counter(m) { this.m = m; this.n = 0; this.st = "wait"; this.best = null; this.buf = []; this.v = null; }
+function Counter(m) {
+  this.m = m; this.n = 0; this.st = "wait"; this.best = null; this.buf = []; this.v = null;
+  this.th = m.rel ? null : { rest: m.rest, goal: m.goal, go: m.go };
+}
 Counter.prototype.feed = function (a) {
   var m = this.m, b = this.buf;
   b.push(a); if (b.length > 5) b.shift();
   a = this.v = b.slice().sort(function (x, y) { return x - y; })[b.length >> 1]; // median of last 5 frames, removes jitter
-  var past = function (x, t) { return m.down ? x <= t : x >= t; };
-  var atRest = m.down ? a >= m.rest : a <= m.rest;
+  if (!this.th) { // "rel" moves: learn your start position from the first moments, then count movement away from it
+    if (b.length < 5) return null;
+    var s = m.down ? -1 : 1, r = m.rel;
+    this.th = { rest: a + s * r.back, goal: a + s * r.goal, go: a + s * r.go };
+  }
+  var t = this.th, past = function (x, v) { return m.down ? x <= v : x >= v; };
+  var atRest = m.down ? a >= t.rest : a <= t.rest;
   if (this.st === "wait") { if (atRest) this.st = "rest"; return null; }
-  if (this.st === "rest") { if (past(a, m.go)) { this.st = "move"; this.best = a; } return null; }
+  if (this.st === "rest") { if (past(a, t.go)) { this.st = "move"; this.best = a; } return null; }
   if (m.down ? a < this.best : a > this.best) this.best = a;
-  if (atRest) { this.st = "rest"; if (past(this.best, m.goal)) { this.n++; return "rep"; } return "shallow"; }
+  if (atRest) { this.st = "rest"; if (past(this.best, t.goal)) { this.n++; return "rep"; } return "shallow"; }
   return null;
 };
 // How far into the rep you are: 0 = start position, 1 = deep enough to count
-function depth(m, v) {
-  if (v == null) return 0;
-  var p = m.down ? (m.rest - v) / (m.rest - m.goal) : (v - m.rest) / (m.goal - m.rest);
-  return Math.max(0, Math.min(1, p));
+function depth(ctr) {
+  var t = ctr.th, v = ctr.v; if (!t || v == null) return 0;
+  return Math.max(0, Math.min(1, (v - t.rest) / (t.goal - t.rest)));
 }
 
 // Plank check: body in a straight line (shoulder-hip-ankle) and lying roughly flat.
@@ -90,6 +130,8 @@ function plankState(L, ar) {
   return h.y < lineY ? { ok: false, why: "Hips too high, lower them a little", say: "Hips down" }
                      : { ok: false, why: "Hips sagging, lift them a little", say: "Hips up" };
 }
+
+var IDLE_REPS = 8000, IDLE_PLANK = 5000; // milliseconds without movement before a set saves itself
 
 // ---------- voice ----------
 function say(t) {
@@ -249,7 +291,7 @@ function onPose(L, ar) {
     if (left !== c.cd) {
       c.cd = left;
       if (left > 0) { if (!say(String(left))) tick(); ui(); }
-      else { c.phase = "count"; c.ctr = new Counter(c.m); c.n = 0; c.secs = 0; c.spoke = 0; if (!say("Go")) tone(880, .3); ui(); }
+      else { c.phase = "count"; c.ctr = new Counter(c.m); c.n = 0; c.secs = 0; c.spoke = 0; c.lastAct = null; c.plankOk = false; if (!say("Go")) tone(880, .3); ui(); }
     }
     return;
   }
@@ -263,28 +305,38 @@ function onPose(L, ar) {
     }
     return;
   }
-  if (c.phase !== "count" || !fresh) return;
+  if (c.phase !== "count") return;
+  // Auto-finish: once something is counted, a pause with no movement (racking the weight, walking off) ends and saves the set
+  var active = c.m.plank ? c.plankOk : c.ctr.st === "move";
+  if (active || c.lastAct == null) c.lastAct = now;
+  var has = c.m.plank ? c.secs >= 5 : c.n >= 1, idle = now - c.lastAct, lim = c.m.plank ? IDLE_PLANK : IDLE_REPS;
+  if (has && idle >= lim) return setDone(true);
+  c.idleWarn = has && idle >= lim - 3000;
+  if (c.idleWarn) setHint("No movement: saving set in " + Math.ceil((lim - idle) / 1000), 1);
+  if (!fresh) return;
 
-  if (!c.r) { if (!c.m.plank) c.ctr.buf = []; setHint(whereMsg(c.m, L)); return; }
+  if (!c.r) { if (!c.m.plank) c.ctr.buf = []; if (!c.idleWarn) setHint(whereMsg(c.m, L)); return; }
   if (c.m.plank) {
     var p = plankState(L, ar);
+    c.plankOk = !!(p && p.ok);
     if (p && p.ok) {
       c.secs += dt; setHint("Good, hold it straight");
       var tens = Math.floor(c.secs / 10) * 10;
       if (tens > c.spoke && c.secs < c.cfg.goal) { c.spoke = tens; say(String(tens)); }
-    } else if (p) { setHint(p.why); sayEvery(p.say, 4000); }
+    } else if (p && !c.idleWarn) { setHint(p.why); sayEvery(p.say, 4000); }
     setCount(mmss(Math.floor(c.secs)));
     setBar(c.secs / c.cfg.goal);
     if (c.secs >= c.cfg.goal) setDone(true);
     return;
   }
   var ev = c.ctr.feed(c.r.a);
-  setBar(depth(c.m, c.ctr.v));
+  setBar(depth(c.ctr));
   if (ev === "rep") {
     c.n = c.ctr.n; setCount(c.n); setHint("", 1);
     if (c.n >= c.cfg.goal) return setDone(true);
     if (!say(String(c.n))) tone(880, .15);
   } else if (ev === "shallow") { if (!say("Too shallow")) tone(300, .3); setHint("Too shallow, not counted", 1, 1800); }
+  else if (c.idleWarn) return;
   else if (c.ctr.st === "wait") setHint(c.m.start);
   else setHint("");
 }
@@ -330,7 +382,7 @@ function saveSet(val) {
       return;
     }
   }
-  var td = dk(new Date()), L = S.cal[td] = S.cal[td] || [], name = c.k ? exOf2(c.k)[0] : c.m.n, ent = null, i;
+  var td = dk(new Date()), L = S.cal[td] = S.cal[td] || [], name = c.k ? exOf2(c.k)[0] : (c.m.log || c.m.n), ent = null, i;
   for (i = 0; i < L.length; i++) if (L[i].cam && L[i].n === name) ent = L[i];
   if (!ent) { ent = { n: name, cam: 1, s: 0, ls: [] }; L.push(ent); }
   ent.ls.push({ r: r, k: null }); ent.s = ent.ls.length; save();
@@ -383,10 +435,13 @@ function camBtn(e, k) {
 
 // Camera tab
 function camv(v) {
-  var h = '<p class="focus">Prop your phone up and it counts for you, out loud. Set a goal and it runs your sets and rest by itself, so you never have to walk back to the phone.</p>';
-  for (var t in MOVES) {
-    var m = MOVES[t];
-    h += '<section class="ex"><h3>' + m.n + '</h3><p class="meta">' + m.how + '</p><button class="big" onclick="camOpen(\'' + t + '\')">📷 Count ' + m.n.toLowerCase() + '</button></section>';
-  }
+  var h = '<p class="focus">Prop your phone up and it counts for you, out loud. Each set saves by itself when you reach your goal or stop moving, then it rests and starts the next set. Every exercise in workouts A, B and C also has a 📷 button.</p>';
+  [["gym", "Gym machines"], ["body", "No equipment"]].forEach(function (grp) {
+    h += '<h3 class="cgrp">' + grp[1] + '</h3>';
+    for (var t in MOVES) {
+      var m = MOVES[t]; if (m.g !== grp[0]) continue;
+      h += '<section class="ex"><h3>' + m.n + '</h3><p class="meta">' + m.how + '</p><button class="big" onclick="camOpen(\'' + t + '\')">📷 Count ' + m.n.toLowerCase() + '</button></section>';
+    }
+  });
   v.innerHTML = h + '<p class="tip">The camera counts reps and keeps you going. It does not judge whether your form is safe. Nothing is recorded or uploaded.</p>';
 }

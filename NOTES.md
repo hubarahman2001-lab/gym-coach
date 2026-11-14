@@ -52,3 +52,14 @@ A bar on the right fills as you go down and turns green when the rep is deep eno
 
 How to test: Camera tab, Count squats, goal 5, sets 2, rest 30 sec, Start camera. Stand so the frame turns green, then do
 5 squats without touching the phone. It should say "Set done", rest 30 s, then run set 2 and show a summary.
+
+## Camera on every exercise, saves on its own
+
+Every gym exercise in workouts A, B and C now has a 📷 button (all except the Incline walk), and the Camera tab lists
+them all. Each machine watches one joint: knee for leg press/extension/curl, elbow for presses, pulldown, row, triceps
+and biceps, hip angle for ab crunch/leg raises, and knee gap for hip abduction. Hip abduction and abs measure from your
+own start position, because machines differ. A set saves itself when you hit the goal, or after 8 seconds of no movement
+once at least one rep is counted (5 seconds for plank), with a "saving set in 3, 2, 1" warning first.
+
+How to test: on workout A open Leg press, type your weight, tap Count with camera, do 5 reps, then sit still. After the
+countdown it saves "5" into set 1 with your weight, rests, and waits for set 2.
