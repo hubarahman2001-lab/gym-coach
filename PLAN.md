@@ -1,0 +1,32 @@
+# Gym Coach: build plan
+
+An upgrade of my existing gym app, "My Gym Plan". It already has day plans, set/rep/weight logging, stretch routines, a rest timer, Log, Week and Progress tabs, and backups. Two things get added: it tells me what weight to lift next, and the phone camera counts my reps.
+
+## Step 0: bring in the existing app
+- [x] The owner's current `My Gym Plan` app is already in this folder as `index.html`. It has NOT been committed yet.
+- [x] This repo is public. Before committing, check the file for personal details (names, appointments, body measurements, real logs) and ask the owner what to remove or rename. Sample data only.
+- [x] Read the file and write `NOTES.md`: how exercises, sets, logs and backups are stored.
+- [x] Do not rewrite or restyle existing features. Existing backups must still import.
+
+## Step 1: next-weight suggestion (no camera needed)
+- [x] For each lift, suggest the weight for next session from the logged sets:
+  - all sets hit the target reps: go up by the step for that exercise (default 2.5 kg, editable per exercise)
+  - missed reps: keep the same weight
+  - missed three sessions in a row: drop about 10 percent
+- [x] Show one short reason under each lift, for example "up 2.5 kg, all reps hit last time".
+- [x] The owner can always override the suggestion.
+- [x] Mark personal records when a logged set beats the previous best.
+
+## Step 2: camera rep counter
+- [ ] A "Count with camera" button on supported exercises. The phone is propped up and the app counts.
+- [ ] Use an on-device pose model that runs in the browser (check the current MediaPipe pose docs). No video is recorded or uploaded.
+- [ ] Start with squats (count a rep when the knee angle goes down past a threshold and back up) and plank (time the hold while the body stays straight).
+- [ ] Show a big live count, a beep per rep, and a "too shallow, not counted" hint.
+- [ ] When the set ends, fill the reps into the normal log so Step 1 can use them.
+- [ ] Works with the front camera in portrait on an iPhone in Safari.
+
+## Step 3: more exercises
+- [ ] Add push-ups, lunges and shoulder press to the counter, one at a time.
+
+## Limits to keep honest
+- The camera is a counter and a motivator. It does not judge whether form is safe, and the app should say so once.
