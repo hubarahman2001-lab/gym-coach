@@ -30,3 +30,9 @@ An upgrade of my existing gym app, "My Gym Plan". It already has day plans, set/
 
 ## Limits to keep honest
 - The camera is a counter and a motivator. It does not judge whether form is safe, and the app should say so once.
+
+## Step 4: extras
+- [x] Install to the home screen and work offline (app files, camera model and fonts saved on the phone).
+- [x] Muscle balance on the Week tab: sets per muscle group since Monday, with the least trained group flagged.
+- [x] Monthly recap on the Week tab: gym days, sets, kg lifted, PRs, best streak, minutes, heaviest lift; save as an image.
+- [ ] Try the home-screen install and offline mode on the real iPhone.

@@ -63,3 +63,17 @@ once at least one rep is counted (5 seconds for plank), with a "saving set in 3,
 
 How to test: on workout A open Leg press, type your weight, tap Count with camera, do 5 reps, then sit still. After the
 countdown it saves "5" into set 1 with your weight, rests, and waits for set 2.
+
+## Step 4: offline app, muscle balance, monthly recap
+
+**Offline / home screen:** `manifest.webmanifest`, `icons/` and `sw.js` make the app installable. On iPhone: open the app in
+Safari, tap Share, then Add to Home Screen. It opens full-screen and works with no signal. The app's own files always
+try the internet first, so updates still show up; the camera model, MediaPipe code and fonts are saved after first use.
+When changing `coach.js`, `camera.js` or `extras.js`, bump the `?v=` number in `index.html` and in `FILES` in `sw.js`.
+
+**Muscle balance and recap** (`extras.js`, Week tab): sets per muscle group this week (matched on exercise name, so
+hand-typed Log entries count), and a monthly recap with ‹ › to change month and a Save as image button (share sheet on
+iPhone, download on laptop). The recap image leaves out VLCC days and body measurements.
+
+How to test: tick a few sets on workouts A and B, open Week, check the bars and the recap numbers, tap Save as image.
+For offline: open the app once online, add it to the home screen, turn on Airplane mode and open it from the icon.
